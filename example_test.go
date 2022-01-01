@@ -21,9 +21,7 @@ func TestPlainText(t *testing.T) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	suite := tesuto.HTTP{
-		Server: server,
-	}
+	suite := tesuto.New(server)
 
 	t.Run("index says hello world", suite.Test(
 		"GET",
@@ -66,9 +64,7 @@ func TestPost(t *testing.T) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	suite := tesuto.HTTP{
-		Server: server,
-	}
+	suite := tesuto.New(server)
 
 	t.Run("greet: happy path", suite.Test(
 		"POST",

@@ -39,7 +39,7 @@ func TestGreeting(t *testing.T) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	suite := New(server)
+	suite := tesuto.New(server)
 
 	t.Run("greet: happy path", suite.Test(
 		"POST",
