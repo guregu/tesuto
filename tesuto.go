@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
 	"reflect"
@@ -50,6 +51,7 @@ type testCase struct {
 	path          string
 	mutateReq     []func(*http.Request)
 	input         io.Reader
+	jar           *cookiejar.Jar
 	expectCode    int
 	expectRaw     []byte
 	expectJSON    interface{}
@@ -62,6 +64,10 @@ type testCase struct {
 func (tc *testCase) fn() func(*testing.T) {
 	return func(t *testing.T) {
 		client := tc.server.Client()
+		if tc.jar != nil {
+			client.Jar = tc.jar
+		}
+
 		req, err := http.NewRequest(tc.method, tc.server.URL+tc.path, tc.input)
 		if err != nil {
 			t.Fatal(err)
@@ -172,6 +178,12 @@ func WithHeader(name, value string) TestOption {
 			}
 			r.Header.Add(name, value)
 		})
+	}
+}
+
+func WithCookieJar(jar *cookiejar.Jar) TestOption {
+	return func(tc *testCase) {
+		tc.jar = jar
 	}
 }
 
