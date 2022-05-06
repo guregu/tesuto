@@ -58,11 +58,13 @@ type testCase struct {
 	outputCmpOpt  []cmp.Option
 	expectHeaders map[string]string
 	grabOutput    interface{}
-	fatalFailure  bool
+	fatalFailure  *testing.T
 }
 
 func (tc *testCase) fn() func(*testing.T) {
 	return func(t *testing.T) {
+		t.Helper()
+
 		client := tc.server.Client()
 		if tc.jar == nil {
 			client.Jar = nil
@@ -91,8 +93,8 @@ func (tc *testCase) fn() func(*testing.T) {
 		t.Log("output:\n", string(gotRaw))
 
 		fail := t.Errorf
-		if tc.fatalFailure {
-			fail = t.Fatalf
+		if tc.fatalFailure != nil {
+			fail = tc.fatalFailure.Fatalf
 		}
 
 		if tc.expectCode != 0 && resp.StatusCode != tc.expectCode {
@@ -118,7 +120,7 @@ func (tc *testCase) fn() func(*testing.T) {
 				t.Fatal(err)
 			}
 			output := outptr.Elem().Interface()
-			if diff := cmp.Diff(tc.expectJSON, output, tc.outputCmpOpt...); diff != "" {
+			if diff := cmp.Diff(output, tc.expectJSON, tc.outputCmpOpt...); diff != "" {
 				fail("[%s %s] output mismatch (-want +got):\n%s", tc.method, tc.path, diff)
 			}
 		}
@@ -228,10 +230,10 @@ func GrabJSONResponse(out interface{}) TestOption {
 	}
 }
 
-// FatalFailure will make this test fail-fast.
-func FatalFailure() TestOption {
+// FatalFailure will make this fatally fail in the given test context.
+func FatalFailure(parentContext *testing.T) TestOption {
 	return func(tc *testCase) {
-		tc.fatalFailure = true
+		tc.fatalFailure = parentContext
 	}
 }
 
