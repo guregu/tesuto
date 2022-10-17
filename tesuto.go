@@ -120,7 +120,7 @@ func (tc *testCase) fn() func(*testing.T) {
 				t.Fatal(err)
 			}
 			output := outptr.Elem().Interface()
-			if diff := cmp.Diff(output, tc.expectJSON, tc.outputCmpOpt...); diff != "" {
+			if diff := cmp.Diff(tc.expectJSON, output, tc.outputCmpOpt...); diff != "" {
 				fail("[%s %s] output mismatch (-want +got):\n%s", tc.method, tc.path, diff)
 			}
 		}
